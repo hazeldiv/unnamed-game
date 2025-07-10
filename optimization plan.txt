@@ -1,0 +1,2 @@
+- calculate the offset (pixel and block) only when the zoom level change
+- make the loop into 2 sperate loop. the first loop is for x to calcultae the block from left to right and save it into array then the array can be used in y loop
