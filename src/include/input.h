@@ -8,6 +8,8 @@ typedef struct input {
     int jump;
     vec2 inputPosition;
     int isPressed;
+    int disabled;
+    int pressingHotbar;
 } input;
 
 #endif

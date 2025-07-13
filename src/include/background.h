@@ -11,8 +11,8 @@ typedef enum {
 } backgroundType;
 
 typedef struct background {
-    const char* name;
     int id;
+    const char* name;
     int color[3];
     SDL_Texture *texture;
     vec2 screenPosition;

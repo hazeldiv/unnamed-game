@@ -6,6 +6,8 @@
 #include <game.h>
 #include <block.h>
 #include <collider.h>
+#include <item.h>
+#include <tile.h>
 
 game *gameState;
 
@@ -22,33 +24,43 @@ void generateWorld() {
             //     if (y == 52) gameState->world[y][x] = 2;
             //     continue;
             // };
-            gameState->background[y][x] = 0;
-            gameState->world[y][x] = 0;
+            // gameState->background[y][x] = 0;
+            // gameState->world[y][x] = 0;
+
+            gameState->world[y][x].block = ITEM_NONE;
+            gameState->world[y][x].background = ITEM_NONE;
+            gameState->world[y][x].coords = (vec2){x,y};
             int chance = rand()%100;
-            if (y<=50) {
-                gameState->world[y][x] = 0;
-                // if (y==50 && (x < 43 || x>58)) {
-                //     if (chance < 50) {
-                //         gameState->world[y][x] = 4;
-                //     }
-                // }
-            } else if (y==51) {
-                gameState->world[y][x] = 1;
-            } else {
-                gameState->world[y][x] = 2;
+            if (y>50) {
+                gameState->world[y][x].block = ITEM_DIRT;
                 if (y>60) {
-                    //if (chance<3) {
-                    gameState->world[y][x] = 3;
-                    //}
+                    gameState->world[y][x].block = ITEM_STONE;
                 }
             }
-            if (y==50) {
-                if (x==48 || x==54) {
-                    gameState->world[y][x] = 2;
-                }
-            }
-            if (y == 50 && x == 51) gameState->background[y][x] = 1;
-            if (y == 49 && x == 49) gameState->world[y][x] = 2;
+            // if (y<=50) {
+            //     gameState->world[y][x] = 0;
+            //     // if (y==50 && (x < 43 || x>58)) {
+            //     //     if (chance < 50) {
+            //     //         gameState->world[y][x] = 4;
+            //     //     }
+            //     // }
+            // } else if (y==51) {
+            //     gameState->world[y][x] = 1;
+            // } else {
+            //     gameState->world[y][x] = 2;
+            //     if (y>60) {
+            //         //if (chance<3) {
+            //         gameState->world[y][x] = 3;
+            //         //}
+            //     }
+            // }
+            // if (y==50) {
+            //     if (x==48 || x==54) {
+            //         gameState->world[y][x] = 2;
+            //     }
+            // }
+            // if (y == 50 && x == 51) gameState->background[y][x] = 1;
+            // if (y == 49 && x == 49) gameState->world[y][x] = 2;
         }
     }
     // for (int i=0;i<2;i++) {
@@ -56,18 +68,24 @@ void generateWorld() {
     // }
 }
 
-
 SDL_AppResult SDL_AppInit(void **appstate, int argc, char *argv[])
 {
     gameState = (game*)malloc(sizeof(game));
     player_init(&(gameState->entityState));
     gameState->screenWidth = 1080;
     gameState->screenHeight = 640;
-    gameState->isInventoryOpen = 0;
+    gameState->input.disabled = 0;
+    gameState->input.pressingHotbar = 0;
+    gameState->inventory.isOpen = 0;
+    gameState->inventory.slotCount = 13;
     generateWorld();
     renderer_init(gameState);
-    init_background(gameState);
-    init_blocks(gameState);
+    inventory_init(&gameState->inventory);
+    gameState->inventory.inventoryItem[0] = 1;
+    gameState->inventory.inventoryItem[1] = 2;
+    //background_init(gameState);
+    //block_init(gameState);
+    item_init(gameState);
     return SDL_APP_CONTINUE;
 }
 
@@ -88,8 +106,10 @@ SDL_AppResult SDL_AppIterate(void *appstate)
     
     physics_iterate(&(gameState->entityState), gameState);
     player_iterate(gameState, &(gameState->entityState), &(gameState->input));
-    blocks_iterate(gameState);
+    tile_iterate(gameState);
     renderer_iterate(gameState);
+    inventory_iterate(gameState, &(gameState->inventory));
+    SDL_RenderPresent(gameState->renderer);
     
     
     //printf("%lf\n", (double)(now-start) / 1000.0);

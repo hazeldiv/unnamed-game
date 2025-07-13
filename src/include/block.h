@@ -13,10 +13,7 @@ typedef enum {
 } blockType;
 
 typedef struct block {
-    const char* name;
     int id;
-    int color[3];
-    SDL_Texture *texture;
     vec2 screenPosition;
     vec2 coords;
     vec2 size;

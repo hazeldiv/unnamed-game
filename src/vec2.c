@@ -13,6 +13,14 @@ int vec2_compare(vec2 a, vec2 b) {
     return a.x == b.x && a.y == b.y;
 }
 
+int vec2_gt(vec2 a, vec2 b) {
+    return a.x > b.x && a.y > b.y;
+}
+
+int vec2_lt(vec2 a, vec2 b) {
+    return a.x < b.x && a.y < b.y;
+}
+
 vec2 vec2_floor(vec2 a) {
     return (vec2){floor(a.x), floor(a.y)};
 }

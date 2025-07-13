@@ -3,6 +3,8 @@
 #include <game.h>
 #include <collider.h>
 #include <block.h>
+#include <item.h>
+#include <tile.h>
 
 int prev_hor = -1;
 int prev_ver = -1;
@@ -19,17 +21,17 @@ int check_collison(entity *entityState, game *gameState, float distance, int dir
                             {entityState->position.x  - entityState->collider.x - 0.01f, entityState->position.y - entityState->collider.y - 0.01f}};
     if (direction == 1) {
         distance = distance == 0 ? 0.01f : distance;
-        if (gameState->world[epsilon_floor(detector[2][1] + distance)][epsilon_floor(detector[2][0])] != 0 ||
-            gameState->world[epsilon_floor(detector[3][1] + distance)][epsilon_floor(detector[3][0])] != 0) return 1;
+        if (gameState->world[epsilon_floor(detector[2][1] + distance)][epsilon_floor(detector[2][0])].block != ITEM_NONE ||
+            gameState->world[epsilon_floor(detector[3][1] + distance)][epsilon_floor(detector[3][0])].block != ITEM_NONE) return 1;
     } else if (direction == 2) {
-        if (gameState->world[epsilon_floor(detector[0][1] + distance)][epsilon_floor(detector[0][0])] != 0 ||
-            gameState->world[epsilon_floor(detector[1][1] + distance)][epsilon_floor(detector[1][0])] != 0) return 1;
+        if (gameState->world[epsilon_floor(detector[0][1] + distance)][epsilon_floor(detector[0][0])].block != ITEM_NONE ||
+            gameState->world[epsilon_floor(detector[1][1] + distance)][epsilon_floor(detector[1][0])].block != ITEM_NONE) return 1;
     } else if (direction == 3) {
-        if (gameState->world[epsilon_floor(detector[0][1])][epsilon_floor(detector[0][0] + distance)] != 0 ||
-            gameState->world[epsilon_floor(detector[2][1])][epsilon_floor(detector[2][0] + distance)] != 0 || detector[0][0] + distance < 0) return 1;
+        if (gameState->world[epsilon_floor(detector[0][1])][epsilon_floor(detector[0][0] + distance)].block != ITEM_NONE ||
+            gameState->world[epsilon_floor(detector[2][1])][epsilon_floor(detector[2][0] + distance)].block != ITEM_NONE || detector[0][0] + distance < 0) return 1;
     } else if (direction == 4) {
-        if (gameState->world[epsilon_floor(detector[1][1])][epsilon_floor(detector[1][0] + distance)] != 0 ||
-            gameState->world[epsilon_floor(detector[3][1])][epsilon_floor(detector[3][0] + distance)] != 0 || detector[1][0] + distance > 100) return 1;
+        if (gameState->world[epsilon_floor(detector[1][1])][epsilon_floor(detector[1][0] + distance)].block != ITEM_NONE ||
+            gameState->world[epsilon_floor(detector[3][1])][epsilon_floor(detector[3][0] + distance)].block != ITEM_NONE || detector[1][0] + distance > 100) return 1;
     }
     return 0;
 }
@@ -42,7 +44,7 @@ SDL_AppResult physics_iterate(entity *entityState, game *gameState) {
     entityState->onGround = 0;
     if (check_collison(entityState, gameState, delta_y, 1)) {
         if (delta_y > 0.0f) {
-            entityState->position.y += (float)round(entityState->position.y - entityState->collider.y+delta_y) - (entityState->position.y - entityState->collider.y);
+            entityState->position.y += (float)epsilon_floor(entityState->position.y - entityState->collider.y+delta_y) - (entityState->position.y - entityState->collider.y);
             entityState->velocity.y = 0;
             delta_y = 0.0f;
         } else {
@@ -57,18 +59,18 @@ SDL_AppResult physics_iterate(entity *entityState, game *gameState) {
         delta_y = entityState->velocity.y*gameState->deltaTime * -1;
     }
     if (check_collison(entityState, gameState, delta_y, 2) && delta_y<0) {
-        entityState->position.y -= (entityState->position.y + entityState->collider.y) - (float)round(entityState->position.y + entityState->collider.y);
+        entityState->position.y -= (entityState->position.y + entityState->collider.y) - (float)epsilon_floor(entityState->position.y + entityState->collider.y);
         entityState->velocity.y = 0;
         delta_y = 0;
     }
     if (check_collison(entityState, gameState, delta_x, 3) && delta_x < 0) {
-        entityState->position.x -= (entityState->position.x + entityState->collider.x) - (float)round(entityState->position.x + entityState->collider.x);
+        entityState->position.x -= (entityState->position.x + entityState->collider.x) - (float)epsilon_floor(entityState->position.x + entityState->collider.x);
         entityState->velocity.x = 0;
         delta_x = 0;
     }
 
     if (check_collison(entityState, gameState, delta_x, 4) && delta_x > 0) {
-        entityState->position.x += (float)round(entityState->position.x - entityState->collider.x+delta_x) - (entityState->position.x - entityState->collider.x);
+        entityState->position.x += (float)epsilon_floor(entityState->position.x - entityState->collider.x+delta_x) - (entityState->position.x - entityState->collider.x);
         entityState->velocity.x = 0;
         delta_x = 0;
     }
