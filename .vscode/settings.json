@@ -1,0 +1,8 @@
+{
+    "files.associations": {
+        "ws2tcpip.h": "c",
+        "entity.h": "c",
+        "string.h": "c",
+        "typeinfo": "c"
+    }
+}
