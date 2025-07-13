@@ -4,11 +4,11 @@
 #include <vec2.h>
 
 typedef struct entity {
+    int id;
+    char name[50];
     vec2 velocity;  
     float gravity;
     vec2 position;
-    char *name;
-    char *tag;
     rectCollider collider;
     float height;
     float width;

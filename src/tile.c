@@ -4,6 +4,7 @@
 #include <vec2.h>
 #include <math.h>
 #include <inventory.h>
+#include <item.h>
 #include <SDL3/SDL.h>
 #include <SDL3_image/SDL_image.h>
 
@@ -52,7 +53,13 @@ void destroy_tile(game *gameState) {
 
 void place_tile(game *gameState) {
     isPlacing = 1;
-    gameState->world[(int)pressedTile.coords.y][(int)pressedTile.coords.x].block = gameState->inventory.hotbarItem[gameState->inventory.selectedHotbar];
+    item item = item_registry[gameState->inventory.hotbarItem[gameState->inventory.selectedHotbar]];
+    if (item.itemType == ITEMTYPE_BLOCK && pressedTile.block == 0) {
+        gameState->world[(int)pressedTile.coords.y][(int)pressedTile.coords.x].block = item.id;
+    } else if (item.itemType == ITEMTYPE_BACKGROUND && pressedTile.background == 0) {
+        gameState->world[(int)pressedTile.coords.y][(int)pressedTile.coords.x].background = item.id;
+    }
+    
 }
 
 SDL_AppResult tile_iterate(game *gameState) {
@@ -63,9 +70,9 @@ SDL_AppResult tile_iterate(game *gameState) {
         if (!vec2_compare(prevPressedTile.coords, pressedTile.coords) || abs(distance.x) > 2 || abs(distance.y) > 2) {
             currentBrokeDuration = brokeDuration;
         }
-        if ((pressedTile.block != ITEM_NONE || pressedTile.background != ITEM_NONE) && isPlacing == 0) {
+        if ((pressedTile.block != ITEM_NONE || pressedTile.background != ITEM_NONE) && isPlacing == 0 && gameState->inventory.hotbarItem[gameState->inventory.selectedHotbar]==0) {
             destroy_tile(gameState);
-        } else if (isDestroying == 0 && abs(distance.x) <= 2 && abs(distance.y) <= 2 && isPlacing == 0 && (distance.x != 0 || distance.y != 0)) {
+        } else if (isDestroying == 0 && abs(distance.x) <= 2 && abs(distance.y) <= 2 && isPlacing == 0 && (distance.x != 0 || distance.y != 0) && gameState->inventory.selectedHotbar != -1) {
             place_tile(gameState);
         }
     } else {

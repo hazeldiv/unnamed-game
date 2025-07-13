@@ -73,8 +73,14 @@ void inventory_renderer(game *gameState, inventory* inventory) {
         rect.y = hotbarOffset.y;
         
         SDL_SetRenderDrawBlendMode(gameState->renderer, SDL_BLENDMODE_BLEND);
-        SDL_SetRenderDrawColor(gameState->renderer, 150,150,150,200);
+        
+        if (inventory->selectedHotbar == i) {
+            SDL_SetRenderDrawColor(gameState->renderer, 150, 150, 250, 200);
+        } else  {
+            SDL_SetRenderDrawColor(gameState->renderer, 150, 150, 150, 200);
+        }
         SDL_RenderFillRects(gameState->renderer, &rect, 1);
+        
         SDL_SetRenderDrawColor(gameState->renderer, 50,50,50, SDL_ALPHA_OPAQUE);
         SDL_RenderRect(gameState->renderer, &rect);
         inventory->hotbarScreenPosition[i].x = rect.x;

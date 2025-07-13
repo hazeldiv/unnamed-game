@@ -1,8 +1,8 @@
 CC = gcc
 CFLAGS = -I src/include
-LDFLAGS = -L src/lib/SDL3 -lSDL3 -L src/lib/SDL3_image -lSDL3_image -lm
+LDFLAGS = -L src/lib/SDL3 -lSDL3 -L src/lib/SDL3_image -lSDL3_image -lm -lws2_32
 
-SRC = src/main.c src/renderer.c src/player.c src/physics.c src/vec2.c src/input.c src/inventory.c src/item.c src/tile.c
+SRC = src/main.c src/renderer.c src/player.c src/physics.c src/vec2.c src/input.c src/inventory.c src/item.c src/tile.c src/client.c
 OBJ = $(patsubst src/%.c, build/%.o, $(SRC))
 
 all: main

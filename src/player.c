@@ -5,8 +5,6 @@
 #include <game.h>
 
 SDL_AppResult player_init(entity *entityState) {
-    entityState->tag = "player";
-    entityState->name = "player";
     entityState->width = 0.5f;
     entityState->height = 0.8f;
     entityState->velocity.x = 0.0f;

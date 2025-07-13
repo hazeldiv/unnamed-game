@@ -10,8 +10,6 @@
 typedef struct game {
     SDL_Window* window;
     SDL_Renderer* renderer;
-    //int world[100][100];
-    //int background[100][100];
     tile world[100][100];
     entity entityState;
     float deltaTime;
@@ -20,6 +18,7 @@ typedef struct game {
     tile displayedTile[30][30];
     input input;
     inventory inventory;
+    entity players[10];
 } game;
 
 #endif
