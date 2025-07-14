@@ -28,3 +28,12 @@ vec2 vec2_floor(vec2 a) {
 vec2 vec2_subtract(vec2 a, vec2 b) {
     return (vec2){a.x - b.x, a.y - b.y};
 }
+
+vec2 vec2_abs(vec2 a) {
+    return (vec2){abs(a.x), abs(a.y)};
+}
+
+int vec2_distanceCompare(vec2 a, vec2 b, int s) {
+    vec2 distance = vec2_abs(vec2_subtract(a,b));
+    return distance.x <= s && distance.y <= s;
+}

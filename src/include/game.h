@@ -18,7 +18,7 @@ typedef struct game {
     tile displayedTile[30][30];
     input input;
     inventory inventory;
-    entity players[10];
+    entity surroundingPlayer[32];
 } game;
 
 #endif

@@ -15,4 +15,6 @@ typedef struct inventory {
     int selectedHotbar;
 } inventory;
 
+int getPressedHotbar(input input, inventory *inventory);
+
 #endif

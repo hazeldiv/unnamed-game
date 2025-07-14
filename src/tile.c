@@ -5,6 +5,8 @@
 #include <math.h>
 #include <inventory.h>
 #include <item.h>
+#include <client.h>
+#include <tile.h>
 #include <SDL3/SDL.h>
 #include <SDL3_image/SDL_image.h>
 
@@ -39,13 +41,17 @@ void getTileCoords(game *gameState) {
 void destroy_tile(game *gameState) {
     isDestroying = 1;
     currentBrokeDuration -= gameState->deltaTime;
+
+    tile *currentTile = &gameState->world[(int)pressedTile.coords.y][(int)pressedTile.coords.x];
     if (currentBrokeDuration <= 0) {
-        if (gameState->world[(int)pressedTile.coords.y][(int)pressedTile.coords.x].block != ITEM_NONE) {
-            gameState->world[(int)pressedTile.coords.y][(int)pressedTile.coords.x].block = ITEM_NONE;
+        if (currentTile->block != ITEM_NONE) {
+            currentTile->block = ITEM_NONE;
             pressedTile.block = -1;
+            tile_change(currentTile);
         } else {
-            gameState->world[(int)pressedTile.coords.y][(int)pressedTile.coords.x].background = ITEM_NONE;
+            currentTile->background = ITEM_NONE;
             pressedTile.background = -1;
+            tile_change(currentTile);
         }
         currentBrokeDuration = brokeDuration;
     }
@@ -54,10 +60,13 @@ void destroy_tile(game *gameState) {
 void place_tile(game *gameState) {
     isPlacing = 1;
     item item = item_registry[gameState->inventory.hotbarItem[gameState->inventory.selectedHotbar]];
+    tile *currentTile = &gameState->world[(int)pressedTile.coords.y][(int)pressedTile.coords.x];
     if (item.itemType == ITEMTYPE_BLOCK && pressedTile.block == 0) {
-        gameState->world[(int)pressedTile.coords.y][(int)pressedTile.coords.x].block = item.id;
+        currentTile->block = item.id;
+        tile_change(currentTile);
     } else if (item.itemType == ITEMTYPE_BACKGROUND && pressedTile.background == 0) {
-        gameState->world[(int)pressedTile.coords.y][(int)pressedTile.coords.x].background = item.id;
+        currentTile->background = item.id;
+        tile_change(currentTile);
     }
     
 }

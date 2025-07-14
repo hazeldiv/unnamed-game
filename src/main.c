@@ -7,16 +7,28 @@
 #include <block.h>
 #include <collider.h>
 #include <item.h>
+#include <inventory.h>
 #include <ws2tcpip.h>
 #include <tile.h>
 
 game *gameState;
 
-// SDL_AppResult renderer_init(void* userdata);
-// SDL_AppResult renderer_event(const SDL_Event* event, void* userdata);
-// SDL_AppResult renderer_iterate(void* userdata);
-// SDL_AppResult entity_event(const SDL_Event* event, void* userdata);
-// SDL_AppResult physics_iterate(entity *EntityState,game *gameState);
+SDL_AppResult input_event(const SDL_Event* event, game *gameState);
+
+SDL_AppResult player_init(entity *entityState);
+SDL_AppResult renderer_init(game *gameState);
+SDL_AppResult inventory_init(inventory *inventory);
+void client_init(game *gameState);
+SDL_AppResult item_init(game *gameState);
+
+void client_iterate(game *gameState);
+SDL_AppResult physics_iterate(entity *entityState, game *gameState);
+SDL_AppResult player_iterate(game *gameState, entity *entityState, input *input);
+SDL_AppResult tile_iterate(game *gameState);
+SDL_AppResult renderer_iterate(game *gameState);
+SDL_AppResult inventory_iterate(game *gameState, inventory *inventory);
+
+void client_quit();
 
 void generateWorld() {
     for (int y=0;y<100;y++) {
@@ -88,6 +100,13 @@ SDL_AppResult SDL_AppInit(void **appstate, int argc, char *argv[])
     gameState->inventory.inventoryItem[1] = 2;
     gameState->inventory.inventoryItem[2] = 4;
     gameState->inventory.inventoryItem[3] = 3;
+    for (int i=0;i<32;i++) {
+        gameState->surroundingPlayer[i].id = -1;
+        gameState->surroundingPlayer[i].position = (vec2){0,0};
+        gameState->surroundingPlayer[i].velocity = (vec2){0,0};
+        gameState->surroundingPlayer[i].position.x = (50*100 + 100/2)/100.0;
+        gameState->surroundingPlayer[i].position.y = 50 + (100)/100.0 - gameState->entityState.height/2;
+    }
     //background_init(gameState);
     //block_init(gameState);
     client_init(gameState);
@@ -107,28 +126,26 @@ SDL_AppResult SDL_AppEvent(void *appstate, SDL_Event *event)
 }
 
 Uint64 start = 0;
-Uint64 counter = 1000;
+Uint64 counter = 20;
 
-DWORD WINAPI ClientHandler(game *gameState) {
-    client_iterate(gameState);
+DWORD WINAPI ClientHandler(LPVOID lpParam) {
+    game *temp = (game*)lpParam;
+    client_iterate(temp);
 }
 
 SDL_AppResult SDL_AppIterate(void *appstate)
 {   
-    if (counter >= 1000) {
-        printf("get world\n");
+    if (counter >= 50) {
         CreateThread(NULL, 0, ClientHandler, gameState, 0, NULL);
         counter = 0;
     }
     
-    //printf("%d %d %d %d %d\n", sizeof(game), sizeof(entity), sizeof(input), sizeof(inventory), sizeof(tile));
     physics_iterate(&(gameState->entityState), gameState);
     player_iterate(gameState, &(gameState->entityState), &(gameState->input));
     tile_iterate(gameState);
     renderer_iterate(gameState);
     inventory_iterate(gameState, &(gameState->inventory));
     SDL_RenderPresent(gameState->renderer);
-    
     
     //printf("%lf\n", (double)(now-start) / 1000.0);
     //int sleep = 16 - (now-start);

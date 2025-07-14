@@ -110,10 +110,10 @@ SDL_AppResult renderer_iterate(game* gameState) {
             }
 
             char str[5];
-            itoa(tileCoords.x, str, 10);
+            sprintf(str, "%d", tileCoords.x);
             SDL_SetRenderDrawColor(gameState->renderer, 0,0,0, SDL_ALPHA_OPAQUE);
             SDL_RenderDebugText(gameState->renderer, rect.x+10, rect.y+10, str);
-            itoa(tileCoords.y, str, 10);
+            sprintf(str, "%d", tileCoords.y);
             SDL_RenderDebugText(gameState->renderer, rect.x+35, rect.y+10, str);
         }
     }
@@ -129,6 +129,19 @@ SDL_AppResult renderer_iterate(game* gameState) {
     rect.w = gameState->entityState.width*zoomLevel*blockSize; 
     rect.h = gameState->entityState.height*zoomLevel*blockSize;
     SDL_RenderFillRects(gameState->renderer, &rect, 1);
+
+    for (int i=0;i<32;i++) {
+        if (gameState->surroundingPlayer[i].id != -1) {
+            if (vec2_distanceCompare(gameState->entityState.position, gameState->surroundingPlayer[i].position, 8)) {
+                vec2 distance = vec2_subtract(gameState->surroundingPlayer[i].position, gameState->entityState.position);
+                rect.x = gameState->screenWidth/2-gameState->entityState.width*zoomLevel/2*blockSize + distance.x*blockSize;
+                rect.y = gameState->screenHeight/2-gameState->entityState.height*zoomLevel/2*blockSize + distance.y*blockSize;
+                rect.w = gameState->entityState.width*zoomLevel*blockSize; 
+                rect.h = gameState->entityState.height*zoomLevel*blockSize;
+                SDL_RenderFillRects(gameState->renderer, &rect, 1);
+            }
+        }
+    }
 
     return SDL_APP_CONTINUE;
 }

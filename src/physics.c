@@ -77,6 +77,12 @@ SDL_AppResult physics_iterate(entity *entityState, game *gameState) {
 
     entityState->position.x += delta_x;
     entityState->position.y += delta_y;
+    for (int i=0;i<32;i++) {
+        float delta_x = gameState->surroundingPlayer[i].velocity.x*gameState->deltaTime;
+        float delta_y = gameState->surroundingPlayer[i].velocity.y*gameState->deltaTime * -1;
+        gameState->surroundingPlayer[i].position.x += delta_x;
+        gameState->surroundingPlayer[i].position.y += delta_y;
+    }
     return SDL_APP_CONTINUE;
 }
 

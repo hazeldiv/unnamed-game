@@ -19,4 +19,12 @@ vec2 vec2_floor(vec2 a);
 
 vec2 vec2_subtract(vec2 a, vec2 b);
 
+int vec2_gt(vec2 a, vec2 b);
+
+int vec2_lt(vec2 a, vec2 b);
+
+vec2 vec2_abs(vec2 a);
+
+int vec2_distanceCompare(vec2 a, vec2 b, int s);
+
 #endif
