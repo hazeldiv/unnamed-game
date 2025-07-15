@@ -12,6 +12,7 @@
 
 #define PORT 25565
 #define MAXPLAYER 32
+#define MAXWORLD 20
 
 game *gameState;
 
@@ -21,7 +22,7 @@ struct world {
 };
 
 struct player {
-    int id;
+    Uint8 id;
     vec2 position;
 };
 
@@ -30,12 +31,17 @@ struct update_world {
     struct world currentTile;
 };
 
+struct packet {
+    struct world world[MAXWORLD][MAXWORLD];
+    struct player players[MAXPLAYER];
+    Uint64 timeStamp;
+    Uint16 status;
+};
+
 int playerCount = 0;
 int idCount = 0;
 struct player players[MAXPLAYER];
 struct world currentWorld[100][100];
-static int getWorldSize = 16;
-struct world worldPayload[16][16];
 
 void generate_world(struct world world[100][100]) {
     for (int y=0;y<100;y++) {
@@ -54,7 +60,7 @@ void generate_world(struct world world[100][100]) {
 
 int find_empty_index() {
     for (int i=0;i<MAXPLAYER;i++) {
-        if (players[i].id == -1) {
+        if (players[i].id == 0) {
             return i;
         }
     }
@@ -71,7 +77,7 @@ DWORD WINAPI ClientHandler(void* arg) {
     }
     struct player client;
     struct update_world updatedTile;
-    struct player playersPayload[MAXPLAYER];
+    struct packet packet;
     while (1) {
         bytes = recv(clientSocket, (char*)&instruction, sizeof(instruction), 0);
         if (bytes <= 0) break;
@@ -85,26 +91,39 @@ DWORD WINAPI ClientHandler(void* arg) {
             send(clientSocket, (char*)&currentId, sizeof(currentId), 0);
             printf("New Client from id : %d\n", currentId);
         } else if (instruction == 2) {
+            if (currentId == 0) break;
             bytes = recv(clientSocket, (char*)&client, sizeof(struct player), 0);
-            players[index].position = client.position;
-            for (int y=0;y<getWorldSize;y++) {
-                int tempY = client.position.y-getWorldSize/2 + y;
-                for (int x=0;x<getWorldSize;x++) {
-                    int tempX = client.position.x-getWorldSize/2 + x;
-                    worldPayload[y][x].block = currentWorld[tempY][tempX].block;
-                    worldPayload[y][x].background = currentWorld[tempY][tempX].background;
+            if (client.id == currentId) {
+                if (bytes != sizeof(struct player)) {
+                    packet.status = 400;
+                    send(clientSocket, (char*)&packet, sizeof(packet), 0);
                 }
+                players[index].position = client.position;
+                for (int i=0;i<MAXPLAYER;i++) {
+                    if (players[i].id != 0) {
+                        packet.players[i].id = players[i].id;
+                        packet.players[i].position = players[i].position;
+                    } else {
+                        packet.players[i].id = 0;
+                    }
+                }
+                // packet.players[index].position = client.position;
+                for (int y=0;y<MAXWORLD;y++) {
+                    int tempY = client.position.y-MAXWORLD/2 + y;
+                    for (int x=0;x<MAXWORLD;x++) {
+                        int tempX = client.position.x-MAXWORLD/2 + x;
+                        packet.world[y][x].block = currentWorld[tempY][tempX].block;
+                        packet.world[y][x].background = currentWorld[tempY][tempX].background;
+                    }
+                }
+                packet.status = 200;
+                packet.timeStamp = SDL_GetTicks();
+                
+                send(clientSocket, (char*)&packet, sizeof(packet), 0);
             }
             
-            //if (received.id == currentId) {
-                //printf("send world to %d %d | size : %d\n", received.id, gameState->world[51][50].block, sizeof(game));
-            send(clientSocket, (char*)&worldPayload, sizeof(worldPayload), 0);
-            send(clientSocket, (char*)players, sizeof(players), 0);
-            Uint64 now = SDL_GetTicks();
-            send(clientSocket, (char*)&now, sizeof(now), 0);
-            send(clientSocket, (char*)&client.position, sizeof(vec2), 0);
-            //} else break;
         } else if (instruction == 3) {
+            if (currentId == 0) break;
             recv(clientSocket, (char*)&(updatedTile), sizeof(struct update_world), 0);
             currentWorld[updatedTile.position.y][updatedTile.position.x].block = updatedTile.currentTile.block;
             currentWorld[updatedTile.position.y][updatedTile.position.x].background = updatedTile.currentTile.background;
@@ -112,8 +131,11 @@ DWORD WINAPI ClientHandler(void* arg) {
             send(clientSocket, (char*)&status, sizeof(status), 0);
         } else break;
     }
-    playerCount--;
-    players[index].id = -1;
+    if (currentId != 0) {
+        playerCount--;
+        players[index].id = 0;
+    }
+    
     printf("Client id %d disconnected.\n", currentId);
     closesocket(clientSocket);
     return 0;
@@ -155,7 +177,7 @@ int main() {
     
     generate_world(currentWorld);
     for (int i=0;i<MAXPLAYER;i++) {
-        players[i].id = -1;
+        players[i].id = 0;
     }
     // Listen
     listen(serverSocket, SOMAXCONN);
