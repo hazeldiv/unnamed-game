@@ -21,20 +21,29 @@ struct world {
     Uint8 background;
 };
 
-struct player {
-    Uint8 id;
-    vec2 position;
-};
-
 struct update_world {
     vec2_int position;
     struct world currentTile;
 };
 
+struct player {
+    Uint8 id;
+    char name[50];
+    vec2 position_a;
+    Uint64 timeStamp_a;
+    vec2 position_b;
+    Uint64 timeStamp_b;
+};
+
+struct initPacket {
+    Uint8 id;
+    Uint64 timeStamp;
+    Uint16 status;
+};
+
 struct packet {
     struct world world[MAXWORLD][MAXWORLD];
-    struct player players[MAXPLAYER];
-    Uint64 timeStamp;
+    struct player players[32];
     Uint16 status;
 };
 
@@ -60,7 +69,7 @@ void generate_world(struct world world[100][100]) {
 
 int find_empty_index() {
     for (int i=0;i<MAXPLAYER;i++) {
-        if (players[i].id == 0) {
+        if (players[i].id == 0 && i!=30) {
             return i;
         }
     }
@@ -82,42 +91,48 @@ DWORD WINAPI ClientHandler(void* arg) {
         bytes = recv(clientSocket, (char*)&instruction, sizeof(instruction), 0);
         if (bytes <= 0) break;
         if (instruction == 1) {
-            bytes = recv(clientSocket, (char*)gameState->players[playerCount].name, sizeof(gameState->players[playerCount].name), 0);
+            char name[50];
+            bytes = recv(clientSocket, name, sizeof(name), 0);
             playerCount++;
             idCount++;
             currentId = idCount;
             index = find_empty_index();
             players[index].id = currentId;
-            send(clientSocket, (char*)&currentId, sizeof(currentId), 0);
+            strcpy(players[index].name, name);
+
+            struct initPacket payload = (struct initPacket) {currentId, SDL_GetTicks(), 200};
+            send(clientSocket, (char*)&payload, sizeof(payload), 0);
             printf("New Client from id : %d\n", currentId);
         } else if (instruction == 2) {
             if (currentId == 0) break;
             bytes = recv(clientSocket, (char*)&client, sizeof(struct player), 0);
             if (client.id == currentId) {
-                if (bytes != sizeof(struct player)) {
-                    packet.status = 400;
-                    send(clientSocket, (char*)&packet, sizeof(packet), 0);
-                }
-                players[index].position = client.position;
+                players[index].position_a = players[index].position_b;
+                players[index].timeStamp_a = players[index].timeStamp_b;
+                players[index].position_b = client.position_a;
+                players[index].timeStamp_b = SDL_GetTicks();
                 for (int i=0;i<MAXPLAYER;i++) {
                     if (players[i].id != 0) {
                         packet.players[i].id = players[i].id;
-                        packet.players[i].position = players[i].position;
+                        packet.players[i].position_a = players[i].position_a;
+                        packet.players[i].timeStamp_a = players[i].timeStamp_a;
+                        packet.players[i].position_b = players[i].position_b;
+                        packet.players[i].timeStamp_b = players[i].timeStamp_b;
+                        strcpy(packet.players[i].name, players[i].name);
                     } else {
                         packet.players[i].id = 0;
                     }
                 }
                 // packet.players[index].position = client.position;
                 for (int y=0;y<MAXWORLD;y++) {
-                    int tempY = client.position.y-MAXWORLD/2 + y;
+                    int tempY = client.position_a.y-MAXWORLD/2 + y;
                     for (int x=0;x<MAXWORLD;x++) {
-                        int tempX = client.position.x-MAXWORLD/2 + x;
+                        int tempX = client.position_a.x-MAXWORLD/2 + x;
                         packet.world[y][x].block = currentWorld[tempY][tempX].block;
                         packet.world[y][x].background = currentWorld[tempY][tempX].background;
                     }
                 }
                 packet.status = 200;
-                packet.timeStamp = SDL_GetTicks();
                 
                 send(clientSocket, (char*)&packet, sizeof(packet), 0);
             }
