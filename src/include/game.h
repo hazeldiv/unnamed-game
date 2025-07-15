@@ -6,6 +6,8 @@
 #include <input.h>
 #include <inventory.h>
 #include <tile.h>
+#include <scene.h>
+#include <SDL3_ttf/SDL_ttf.h>
 
 typedef struct game {
     SDL_Window* window;
@@ -21,6 +23,11 @@ typedef struct game {
     entity surroundingPlayer[32];
     int isClientBusy;
     float t;
+    Uint64 serverOffsetTime;
+    int currentScene;
+    scene scene[10];
+    TTF_TextEngine *engine;
+    TTF_Font *font;
 } game;
 
 #endif

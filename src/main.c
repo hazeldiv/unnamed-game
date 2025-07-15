@@ -29,6 +29,10 @@ SDL_AppResult tile_iterate(game *gameState);
 SDL_AppResult renderer_iterate(game *gameState);
 SDL_AppResult inventory_iterate(game *gameState, inventory *inventory);
 
+SDL_AppResult mainMenu_iterate(game *gameState);
+SDL_AppResult mainMenu_init(game *gameState);
+SDL_AppResult mainMenu_event(SDL_Event *event, game *gameState);
+
 void client_quit();
 
 void generateWorld() {
@@ -86,6 +90,7 @@ SDL_AppResult SDL_AppInit(void **appstate, int argc, char *argv[])
 {
     gameState = (game*)malloc(sizeof(game));
     player_init(&(gameState->entityState));
+
     gameState->screenWidth = 1080;
     gameState->screenHeight = 640;
     gameState->input.disabled = 0;
@@ -98,6 +103,9 @@ SDL_AppResult SDL_AppInit(void **appstate, int argc, char *argv[])
 
 
     renderer_init(gameState);
+    TTF_Init();
+    gameState->engine = TTF_CreateRendererTextEngine(gameState->renderer);
+    gameState->font = TTF_OpenFont("assets/arial.ttf", 24.0f);
     inventory_init(&gameState->inventory);
     gameState->inventory.inventoryItem[0] = 1;
     gameState->inventory.inventoryItem[1] = 2;
@@ -113,9 +121,10 @@ SDL_AppResult SDL_AppInit(void **appstate, int argc, char *argv[])
     }
     //background_init(gameState);
     //block_init(gameState);
-    client_init(gameState);
-    client_iterate(gameState);
     item_init(gameState);
+
+    mainMenu_init(gameState);
+    gameState->currentScene = 2;
     return SDL_APP_CONTINUE;
 }
 
@@ -124,55 +133,49 @@ SDL_AppResult SDL_AppEvent(void *appstate, SDL_Event *event)
     if ((*event).type == SDL_EVENT_QUIT) {
         return SDL_APP_SUCCESS;
     }
-    input_event(event, gameState);
-
+    if (gameState->currentScene == 1) {
+        input_event(event, gameState);
+    } else if (gameState->currentScene == 2) {
+        mainMenu_event(event, gameState);
+    }
     return SDL_APP_CONTINUE;
 }
 
 Uint64 start = 0;
-Uint64 counter = 100;
+Uint64 counter = 1000;
 
 DWORD WINAPI ClientHandler(LPVOID lpParam) {
     game *temp = (game*)lpParam;
     client_iterate(temp);
 }
-Uint64 prevTimeStamp;
-Uint64 timeStamp;
 SDL_AppResult SDL_AppIterate(void *appstate)
 {   
-    if (counter >= 100 && !gameState->isClientBusy) {
-        gameState->isClientBusy = 1;
-        CreateThread(NULL, 0, ClientHandler, gameState, 0, NULL);
-        counter = 0;
-        gameState->t = 0;
-        
-        for (int i=0;i<32;i++) {
-            if (gameState->surroundingPlayer[i].id != 0) {
-                printf("test %f %f\n", gameState->surroundingPlayer[i].position.x, gameState->surroundingPlayer[i].position.y, gameState->surroundingPlayer[i].targetPos.x, gameState->surroundingPlayer[i].targetPos.y);
-            }
+    if (gameState->currentScene == 1) {
+        if (counter >= 80+(rand()%200) && !gameState->isClientBusy) {
+            gameState->isClientBusy = 1;
+            CreateThread(NULL, 0, ClientHandler, gameState, 0, NULL);
+            counter = 0;
         }
-        prevTimeStamp = timeStamp;
-        timeStamp = SDL_GetTicks();
-    }
-    gameState->t = (float)counter/(timeStamp-prevTimeStamp);
-    // client_test(gameState);
-    physics_iterate(&(gameState->entityState), gameState);
-    player_iterate(gameState, &(gameState->entityState), &(gameState->input));
-    tile_iterate(gameState);
-    renderer_iterate(gameState);
-    inventory_iterate(gameState, &(gameState->inventory));
-    SDL_RenderPresent(gameState->renderer);
-    
-    //printf("%lf\n", (double)(now-start) / 1000.0);
-    //int sleep = 16 - (now-start);
-    //if (sleep<0) sleep=1;
-    SDL_Delay(1);
-    const Uint64 now = SDL_GetTicks();
+        physics_iterate(&(gameState->entityState), gameState);
+        player_iterate(gameState, &(gameState->entityState), &(gameState->input));
+        tile_iterate(gameState);
+        renderer_iterate(gameState);
+        inventory_iterate(gameState, &(gameState->inventory));
+        
+        //printf("%lf\n", (double)(now-start) / 1000.0);
+        //int sleep = 16 - (now-start);
+        //if (sleep<0) sleep=1;
+        SDL_Delay(1);
+        const Uint64 now = SDL_GetTicks();
 
-    gameState->deltaTime = (float)(now-start) / 1000.0f;
-    counter += now-start;
-    start = now;
-    
+        gameState->deltaTime = (float)(now-start) / 1000.0f;
+        counter += now-start;
+        start = now;
+    } else if(gameState->currentScene == 2) {
+        mainMenu_iterate(gameState);
+    }
+    SDL_RenderPresent(gameState->renderer);
+
     return SDL_APP_CONTINUE;
 }
 

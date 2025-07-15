@@ -8,6 +8,7 @@
 #include <item.h>
 #include <tile.h>
 #include <SDL3_image/SDL_image.h>
+#include <string.h>
 
 int blockSize = 100;
 int zoomLevel = 1;
@@ -129,6 +130,10 @@ SDL_AppResult renderer_iterate(game* gameState) {
     rect.w = gameState->entityState.width*zoomLevel*blockSize; 
     rect.h = gameState->entityState.height*zoomLevel*blockSize;
     SDL_RenderFillRects(gameState->renderer, &rect, 1);
+    TTF_Text *ttfText = TTF_CreateText(gameState->engine, gameState->font, gameState->entityState.name, strlen(gameState->entityState.name));
+    TTF_SetTextColor(ttfText, 255,0,0, SDL_ALPHA_OPAQUE);
+    TTF_DrawRendererText(ttfText, rect.x, rect.y-26);
+    TTF_DestroyText(ttfText);
 
     for (int i=0;i<32;i++) {
         if (gameState->surroundingPlayer[i].id != 0) {
@@ -140,7 +145,12 @@ SDL_AppResult renderer_iterate(game* gameState) {
                 rect.y = gameState->screenHeight/2-gameState->entityState.height*zoomLevel/2*blockSize + distance.y*blockSize;
                 rect.w = gameState->entityState.width*zoomLevel*blockSize; 
                 rect.h = gameState->entityState.height*zoomLevel*blockSize;
+                
                 SDL_RenderFillRects(gameState->renderer, &rect, 1);
+                ttfText = TTF_CreateText(gameState->engine, gameState->font, gameState->surroundingPlayer[i].name, strlen(gameState->surroundingPlayer[i].name));
+                TTF_SetTextColor(ttfText, 255,0,0, SDL_ALPHA_OPAQUE);
+                TTF_DrawRendererText(ttfText, rect.x, rect.y-26);
+                TTF_DestroyText(ttfText);
             }
         }
     }

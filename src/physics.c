@@ -76,15 +76,17 @@ SDL_AppResult physics_iterate(entity *entityState, game *gameState) {
 
     entityState->position.x += delta_x;
     entityState->position.y += delta_y;
+    
     for (int i=0;i<32;i++) {
         if (gameState->surroundingPlayer[i].id != 0 && gameState->t <= 1.0f) {
-            // float delta_x = gameState->surroundingPlayer[i].velocity.x*gameState->deltaTime;
-            // float delta_y = gameState->surroundingPlayer[i].velocity.y*gameState->deltaTime * -1;
-            // printf("%f %f %f %f %f before\n", (gameState->surroundingPlayer[i].targetPos.x - gameState->surroundingPlayer[i].position.x)*gameState->t, gameState->surroundingPlayer[i].targetPos.x - gameState->surroundingPlayer[i].position.x, gameState->surroundingPlayer[i].targetPos.x , gameState->surroundingPlayer[i].position.x, gameState->t);
-            // printf("%f lsakdfj;adslfj;asdl\n", (gameState->surroundingPlayer[i].targetPos.x - gameState->surroundingPlayer[i].startPos.x)*gameState->t);
-            gameState->surroundingPlayer[i].position.x = gameState->surroundingPlayer[i].startPos.x + (gameState->surroundingPlayer[i].targetPos.x - gameState->surroundingPlayer[i].startPos.x)*gameState->t;
-            gameState->surroundingPlayer[i].position.y = gameState->surroundingPlayer[i].startPos.y + (gameState->surroundingPlayer[i].targetPos.y - gameState->surroundingPlayer[i].startPos.y)*gameState->t;
-            // printf("%f %f %f %f after\n", gameState->surroundingPlayer[i].targetPos.x - gameState->surroundingPlayer[i].position.x, gameState->surroundingPlayer[i].targetPos.x , gameState->surroundingPlayer[i].position.x, gameState->t);
+            Uint64 renderTime = SDL_GetTicks() - gameState->surroundingPlayer[i].currentTimeStamp;
+            float t = (float)(renderTime)/(gameState->surroundingPlayer[i].timeStamp - gameState->surroundingPlayer[i].prevTimeStamp);
+            if ((gameState->surroundingPlayer[i].timeStamp - gameState->surroundingPlayer[i].prevTimeStamp) == 0) t = 0.0f;
+            if (t>1) t = 1.0f;
+            if (t<0) t = 0.0f;
+            gameState->surroundingPlayer[i].position.x = gameState->surroundingPlayer[i].startPos.x + (gameState->surroundingPlayer[i].targetPos.x - gameState->surroundingPlayer[i].startPos.x)*t;
+            gameState->surroundingPlayer[i].position.y = gameState->surroundingPlayer[i].startPos.y + (gameState->surroundingPlayer[i].targetPos.y - gameState->surroundingPlayer[i].startPos.y)*t;
+            // printf("%f %f %f %f %d %d %d %d\n", gameState->surroundingPlayer[i].position.x, gameState->surroundingPlayer[i].startPos.x, gameState->surroundingPlayer[i].targetPos.x, t,renderTime, gameState->surroundingPlayer[i].timeStamp, gameState->surroundingPlayer[i].prevTimeStamp, SDL_GetTicks());
         }
         
     }

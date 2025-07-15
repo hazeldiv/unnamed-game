@@ -2,6 +2,7 @@
 #define ENTITY_H
 #include <collider.h>
 #include <vec2.h>
+#include <SDL3/SDL.h>
 
 typedef struct entity {
     int id;
@@ -18,6 +19,9 @@ typedef struct entity {
     int onGround;
     vec2 targetPos;
     vec2 startPos;
+    Uint64 timeStamp;
+    Uint64 prevTimeStamp;
+    Uint64 currentTimeStamp;
 } entity;
 
 #endif
