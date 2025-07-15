@@ -131,8 +131,10 @@ SDL_AppResult renderer_iterate(game* gameState) {
     SDL_RenderFillRects(gameState->renderer, &rect, 1);
 
     for (int i=0;i<32;i++) {
-        if (gameState->surroundingPlayer[i].id != -1) {
+        if (gameState->surroundingPlayer[i].id != 0) {
+            //printf("%f %f\n", gameState->surroundingPlayer[i].position.x, gameState->surroundingPlayer[i].position.y);
             if (vec2_distanceCompare(gameState->entityState.position, gameState->surroundingPlayer[i].position, 8)) {
+                
                 vec2 distance = vec2_subtract(gameState->surroundingPlayer[i].position, gameState->entityState.position);
                 rect.x = gameState->screenWidth/2-gameState->entityState.width*zoomLevel/2*blockSize + distance.x*blockSize;
                 rect.y = gameState->screenHeight/2-gameState->entityState.height*zoomLevel/2*blockSize + distance.y*blockSize;

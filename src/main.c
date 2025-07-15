@@ -22,6 +22,7 @@ void client_init(game *gameState);
 SDL_AppResult item_init(game *gameState);
 
 void client_iterate(game *gameState);
+void client_test(game *gameState);
 SDL_AppResult physics_iterate(entity *entityState, game *gameState);
 SDL_AppResult player_iterate(game *gameState, entity *entityState, input *input);
 SDL_AppResult tile_iterate(game *gameState);
@@ -91,6 +92,8 @@ SDL_AppResult SDL_AppInit(void **appstate, int argc, char *argv[])
     gameState->input.pressingHotbar = 0;
     gameState->inventory.isOpen = 0;
     gameState->inventory.slotCount = 13;
+    gameState->isClientBusy = 0;
+    gameState->t = 0.0f;
     //generateWorld();
 
 
@@ -101,11 +104,12 @@ SDL_AppResult SDL_AppInit(void **appstate, int argc, char *argv[])
     gameState->inventory.inventoryItem[2] = 4;
     gameState->inventory.inventoryItem[3] = 3;
     for (int i=0;i<32;i++) {
-        gameState->surroundingPlayer[i].id = -1;
-        gameState->surroundingPlayer[i].position = (vec2){0,0};
+        gameState->surroundingPlayer[i].id = 0;
         gameState->surroundingPlayer[i].velocity = (vec2){0,0};
         gameState->surroundingPlayer[i].position.x = (50*100 + 100/2)/100.0;
         gameState->surroundingPlayer[i].position.y = 50 + (100)/100.0 - gameState->entityState.height/2;
+        gameState->surroundingPlayer[i].targetPos = gameState->surroundingPlayer[i].position;
+        gameState->surroundingPlayer[i].startPos = gameState->surroundingPlayer[i].position;
     }
     //background_init(gameState);
     //block_init(gameState);
@@ -126,20 +130,32 @@ SDL_AppResult SDL_AppEvent(void *appstate, SDL_Event *event)
 }
 
 Uint64 start = 0;
-Uint64 counter = 20;
+Uint64 counter = 100;
 
 DWORD WINAPI ClientHandler(LPVOID lpParam) {
     game *temp = (game*)lpParam;
     client_iterate(temp);
 }
-
+Uint64 prevTimeStamp;
+Uint64 timeStamp;
 SDL_AppResult SDL_AppIterate(void *appstate)
 {   
-    if (counter >= 50) {
+    if (counter >= 100 && !gameState->isClientBusy) {
+        gameState->isClientBusy = 1;
         CreateThread(NULL, 0, ClientHandler, gameState, 0, NULL);
         counter = 0;
+        gameState->t = 0;
+        
+        for (int i=0;i<32;i++) {
+            if (gameState->surroundingPlayer[i].id != 0) {
+                printf("test %f %f\n", gameState->surroundingPlayer[i].position.x, gameState->surroundingPlayer[i].position.y, gameState->surroundingPlayer[i].targetPos.x, gameState->surroundingPlayer[i].targetPos.y);
+            }
+        }
+        prevTimeStamp = timeStamp;
+        timeStamp = SDL_GetTicks();
     }
-    
+    gameState->t = (float)counter/(timeStamp-prevTimeStamp);
+    // client_test(gameState);
     physics_iterate(&(gameState->entityState), gameState);
     player_iterate(gameState, &(gameState->entityState), &(gameState->input));
     tile_iterate(gameState);

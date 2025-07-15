@@ -16,6 +16,8 @@ typedef struct entity {
     int moving_left;
     int jump;
     int onGround;
+    vec2 targetPos;
+    vec2 startPos;
 } entity;
 
 #endif

@@ -19,6 +19,8 @@ typedef struct game {
     input input;
     inventory inventory;
     entity surroundingPlayer[32];
+    int isClientBusy;
+    float t;
 } game;
 
 #endif
