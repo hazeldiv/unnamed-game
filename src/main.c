@@ -17,7 +17,7 @@ SDL_AppResult input_event(const SDL_Event* event, game *gameState);
 
 SDL_AppResult player_init(entity *entityState);
 SDL_AppResult renderer_init(game *gameState);
-SDL_AppResult inventory_init(inventory *inventory);
+SDL_AppResult inventory_init(inventory *inventory, game *gameState);
 void client_init(game *gameState);
 SDL_AppResult item_init(game *gameState);
 
@@ -106,7 +106,7 @@ SDL_AppResult SDL_AppInit(void **appstate, int argc, char *argv[])
     TTF_Init();
     gameState->engine = TTF_CreateRendererTextEngine(gameState->renderer);
     gameState->font = TTF_OpenFont("assets/arial.ttf", 24.0f);
-    inventory_init(&gameState->inventory);
+    inventory_init(&gameState->inventory, gameState);
     gameState->inventory.inventoryItem[0] = 1;
     gameState->inventory.inventoryItem[1] = 2;
     gameState->inventory.inventoryItem[2] = 4;
@@ -142,7 +142,7 @@ SDL_AppResult SDL_AppEvent(void *appstate, SDL_Event *event)
 }
 
 Uint64 start = 0;
-Uint64 counter = 1000;
+Uint64 counter = 100;
 
 DWORD WINAPI ClientHandler(LPVOID lpParam) {
     game *temp = (game*)lpParam;
@@ -151,7 +151,8 @@ DWORD WINAPI ClientHandler(LPVOID lpParam) {
 SDL_AppResult SDL_AppIterate(void *appstate)
 {   
     if (gameState->currentScene == 1) {
-        if (counter >= 80+(rand()%200) && !gameState->isClientBusy) {
+        //printf("busy %d\n", gameState->isClientBusy);
+        if (counter >= 100 && !gameState->isClientBusy) {
             gameState->isClientBusy = 1;
             CreateThread(NULL, 0, ClientHandler, gameState, 0, NULL);
             counter = 0;
@@ -173,6 +174,24 @@ SDL_AppResult SDL_AppIterate(void *appstate)
         start = now;
     } else if(gameState->currentScene == 2) {
         mainMenu_iterate(gameState);
+    } else if (gameState->currentScene == 3) {
+        SDL_FRect rect;
+        rect.x = 0;
+        rect.y = 0;
+        rect.w = gameState->screenWidth;
+        rect.h = gameState->screenHeight;
+        SDL_SetRenderDrawColor(gameState->renderer, 5, 224, 252, SDL_ALPHA_OPAQUE);
+        SDL_RenderFillRects(gameState->renderer, &rect, 1);
+        char *text = "Loading";
+        TTF_Text *ttfText = TTF_CreateText(gameState->engine, gameState->font, text, strlen(text));
+        int textWidth;
+        int textHeight = TTF_GetFontHeight(gameState->font);
+        TTF_GetTextSize(ttfText, &textWidth, NULL);
+
+        rect.x = (gameState->screenWidth - textWidth)/2;
+        rect.y = (gameState->screenHeight - textHeight)/2;
+        TTF_SetTextColor(ttfText, 0,0,0, SDL_ALPHA_OPAQUE);
+        TTF_DrawRendererText(ttfText, rect.x, rect.y);
     }
     SDL_RenderPresent(gameState->renderer);
 

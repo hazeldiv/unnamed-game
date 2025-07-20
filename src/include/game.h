@@ -9,10 +9,13 @@
 #include <scene.h>
 #include <SDL3_ttf/SDL_ttf.h>
 
+#define WORLD_WIDTH 100
+#define WORLD_HEIGHT 100
+
 typedef struct game {
     SDL_Window* window;
     SDL_Renderer* renderer;
-    tile world[100][100];
+    tile world[WORLD_HEIGHT][WORLD_WIDTH];
     entity entityState;
     float deltaTime;
     int screenWidth;

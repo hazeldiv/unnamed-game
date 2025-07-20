@@ -6,7 +6,11 @@
 #include <SDL3/SDL.h>
 #include <SDL3_image/SDL_image.h>
 
-void inventory_init(inventory* inventory) {
+SDL_Texture *invBg;
+SDL_Texture *invItem;
+void inventory_init(inventory* inventory, game *gameState) {
+    invBg = IMG_LoadTexture(gameState->renderer, "assets/inventory-background.png");
+    invItem = IMG_LoadTexture(gameState->renderer, "assets/inventory-slot.png");
     for (int i=0;i<inventory->slotCount;i++) {
         inventory->inventoryItem[i] = 0;
     }
@@ -24,14 +28,14 @@ void inventory_renderer(game *gameState, inventory* inventory) {
     int i;
     int itemOffset = 10;
     if (inventory->isOpen) {
-        SDL_Texture *invBg = IMG_LoadTexture(gameState->renderer, "assets/inventory-background.png");
+        
         vec2 invOffset = (vec2){(gameState->screenWidth - invBg->w)/2, 20};
         rect.x = invOffset.x;
         rect.y = invOffset.y;
         rect.w = invBg->w;
         rect.h = invBg->h;
         SDL_RenderTexture(gameState->renderer, invBg, NULL, &rect);
-        SDL_Texture *invItem = IMG_LoadTexture(gameState->renderer, "assets/inventory-slot.png");
+        
         rect.w = invItem->w;
         rect.h = invItem->h;
         rectItem.w = rect.w - itemOffset * 2;

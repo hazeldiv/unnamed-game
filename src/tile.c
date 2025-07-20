@@ -47,11 +47,11 @@ void destroy_tile(game *gameState) {
         if (currentTile->block != ITEM_NONE) {
             currentTile->block = ITEM_NONE;
             pressedTile.block = -1;
-            tile_change(currentTile);
+            tile_update(currentTile);
         } else {
             currentTile->background = ITEM_NONE;
             pressedTile.background = -1;
-            tile_change(currentTile);
+            tile_update(currentTile);
         }
         currentBrokeDuration = brokeDuration;
     }
@@ -63,10 +63,10 @@ void place_tile(game *gameState) {
     tile *currentTile = &gameState->world[(int)pressedTile.coords.y][(int)pressedTile.coords.x];
     if (item.itemType == ITEMTYPE_BLOCK && pressedTile.block == 0) {
         currentTile->block = item.id;
-        tile_change(currentTile);
+        tile_update(currentTile);
     } else if (item.itemType == ITEMTYPE_BACKGROUND && pressedTile.background == 0) {
         currentTile->background = item.id;
-        tile_change(currentTile);
+        tile_update(currentTile);
     }
     
 }

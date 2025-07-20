@@ -57,10 +57,18 @@ SDL_AppResult mainMenu_event(SDL_Event *event, game *gameState) {
         int pressedComponent = getComponent((vec2){event->button.x,event->button.y}, gameState);
         focus = 0;
         if (pressedComponent == 1) {
+            gameState->currentScene = 3;
+            
+
             strcpy(gameState->entityState.name, inputText);
-            client_init(gameState);
-            client_iterate(gameState);
-            gameState->currentScene = 1;
+            // client_init(gameState);
+            // SDL_Thread *thread = SDL_CreateThread(my_thread, "MyThread", &value);
+            SDL_Thread *thread = SDL_CreateThread((SDL_ThreadFunction)client_init, "client_init", gameState);
+            SDL_DetachThread(thread);
+            // SDL_WaitThread(thread, &threadReturnValue);
+            
+            // client_iterate(gameState);
+            // gameState->currentScene = 1;
         } 
         if (pressedComponent == 0) {
             SDL_StartTextInput(gameState->window);
@@ -79,11 +87,19 @@ SDL_AppResult mainMenu_event(SDL_Event *event, game *gameState) {
     }
 }
 
+Uint64 lastBlinkTime = 0;
+int showCaret = 0;
+
 SDL_AppResult mainMenu_iterate(game *gameState) {
     SDL_FRect rect;
+    rect.x = 0;
+    rect.y = 0;
+    rect.w = gameState->screenWidth;
+    rect.h = gameState->screenHeight;
+    SDL_SetRenderDrawColor(gameState->renderer, 0 ,0, 0, SDL_ALPHA_OPAQUE);
+    SDL_RenderFillRects(gameState->renderer, &rect, 1);
     
     for (int i=0;i<gameState->scene[id].componentCount;i++) {
-        
         rect.x = gameState->scene[id].component[i].x;
         rect.y = gameState->scene[id].component[i].y;
         rect.w = gameState->scene[id].component[i].w;
@@ -98,16 +114,38 @@ SDL_AppResult mainMenu_iterate(game *gameState) {
         SDL_RenderRect(gameState->renderer, &rect);
         if (i==0) {
             TTF_Text *ttfText;
-            if (inputText[0] != '\0') {
-                ttfText = TTF_CreateText(gameState->engine, gameState->font, inputText, strlen(inputText));
-                TTF_SetTextColor(ttfText, 0,0,0, SDL_ALPHA_OPAQUE);
-                TTF_DrawRendererText(ttfText, rect.x+20, rect.y + (50-24)/2);
-                TTF_DestroyText(ttfText);
-            }
+
             ttfText = TTF_CreateText(gameState->engine, gameState->font, "Name :", strlen("Name :"));
             TTF_SetTextColor(ttfText, 255,255,255, SDL_ALPHA_OPAQUE);
             TTF_DrawRendererText(ttfText, rect.x+20, rect.y - 30);
             TTF_DestroyText(ttfText);
+
+            
+            ttfText = TTF_CreateText(gameState->engine, gameState->font, inputText, strlen(inputText));
+            int textWidth;
+            int textHeight = TTF_GetFontHeight(gameState->font);
+            TTF_GetTextSize(ttfText, &textWidth, NULL);
+            rect.x = rect.x + 20;
+            rect.y = rect.y + (gameState->scene[id].component[i].h-textHeight)/2;
+
+            TTF_SetTextColor(ttfText, 0,0,0, SDL_ALPHA_OPAQUE);
+            TTF_DrawRendererText(ttfText, rect.x, rect.y);
+            TTF_DestroyText(ttfText);
+            Uint64 now = SDL_GetTicks();
+            if (now - lastBlinkTime >= 500) {
+                showCaret = !showCaret;
+                lastBlinkTime = now;
+            }
+            if (showCaret && focus) {
+                SDL_FRect caret;
+                caret.x = rect.x + textWidth + 2;
+                caret.y = rect.y;
+                caret.w = 2;
+                caret.h = textHeight;
+
+                SDL_SetRenderDrawColor(gameState->renderer, 0, 0, 0, SDL_ALPHA_OPAQUE);
+                SDL_RenderFillRects(gameState->renderer, &caret, 1);
+            }
         }
     }
     
