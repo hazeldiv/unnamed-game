@@ -10,6 +10,7 @@
 #include <inventory.h>
 #include <ws2tcpip.h>
 #include <tile.h>
+#include <client.h>
 
 game *gameState;
 
@@ -144,17 +145,19 @@ SDL_AppResult SDL_AppEvent(void *appstate, SDL_Event *event)
 Uint64 start = 0;
 Uint64 counter = 100;
 
-DWORD WINAPI ClientHandler(LPVOID lpParam) {
-    game *temp = (game*)lpParam;
-    client_iterate(temp);
-}
+// DWORD WINAPI ClientHandler(LPVOID lpParam) {
+//     game *temp = (game*)lpParam;
+//     update_position(temp)
+// }
 SDL_AppResult SDL_AppIterate(void *appstate)
 {   
     if (gameState->currentScene == 1) {
         //printf("busy %d\n", gameState->isClientBusy);
         if (counter >= 100 && !gameState->isClientBusy) {
             gameState->isClientBusy = 1;
-            CreateThread(NULL, 0, ClientHandler, gameState, 0, NULL);
+            // CreateThread(NULL, 0, ClientHandler, gameState, 0, NULL);
+            SDL_Thread *thread = SDL_CreateThread((SDL_ThreadFunction)update_position, "update_position", gameState);
+            SDL_DetachThread(thread);
             counter = 0;
         }
         physics_iterate(&(gameState->entityState), gameState);

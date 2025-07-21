@@ -82,6 +82,7 @@ SDL_AppResult tile_iterate(game *gameState) {
         if ((pressedTile.block != ITEM_NONE || pressedTile.background != ITEM_NONE) && isPlacing == 0 && gameState->inventory.hotbarItem[gameState->inventory.selectedHotbar]==0) {
             destroy_tile(gameState);
         } else if (isDestroying == 0 && abs(distance.x) <= 2 && abs(distance.y) <= 2 && isPlacing == 0 && (distance.x != 0 || distance.y != 0) && gameState->inventory.selectedHotbar != -1) {
+            
             place_tile(gameState);
         }
     } else {
