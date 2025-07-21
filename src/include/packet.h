@@ -76,6 +76,7 @@ typedef struct positionBroadcast {
 } positionBroadcast;
 
 typedef struct tileUpdate {
+    uint8_t type;
     uint8_t id;
     simpleTile tile;
     vec2_int position;
