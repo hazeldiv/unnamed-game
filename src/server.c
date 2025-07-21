@@ -10,7 +10,7 @@
 
 #define PORT 55555
 world worldState;
-
+uint8_t playerCount;
 void generate_world() {
     for (int y=0;y<100;y++) {
         for (int x=0;x<100;x++) {
@@ -69,15 +69,17 @@ int handle_message(ENetPeer* peer, ENetPacket* packet, ENetHost *server) {
         }
         case TYPE_TILE: {
             tileUpdate *receivedPakcet = (tileUpdate*)packet->data;
+            worldState.tile[receivedPakcet->position.y][receivedPakcet->position.x].block = receivedPakcet->tile.block;
+            worldState.tile[receivedPakcet->position.y][receivedPakcet->position.x].background = receivedPakcet->tile.background;
             int index = get_client_index(worldState.clienState, peer);
+            tileUpdate sendData = {BROADCAST_TILE, receivedPakcet->tile, receivedPakcet->position};
+            ENetPacket *sendPacket = enet_packet_create((char*)&sendData, sizeof(sendData), ENET_PACKET_FLAG_RELIABLE);
             for (int i=0;i<MAX_PLAYER;i++) {
-                if (worldState.clienState[i].data.id != receivedPakcet->id && worldState.clienState[i].peer != NULL) {
-                    ENetPacket *packet = enet_packet_create((char*)&receivedPakcet, sizeof(receivedPakcet), ENET_PACKET_FLAG_RELIABLE);
-                    enet_peer_send(worldState.clienState[i].peer, 0, packet);
-                    enet_host_flush(server);
+                if (worldState.clienState[i].peer != NULL && worldState.clienState[i].peer != peer && worldState.clienState[i].peer->state == ENET_PEER_STATE_CONNECTED) {
+                    enet_peer_send(worldState.clienState[i].peer, 0, sendPacket);
                 }
             }
-
+            enet_host_flush(server);
             break;
         }
         case TYPE_CHAT: {
@@ -96,6 +98,7 @@ void handle_disconnect(ENetPeer* peer) {
     int index = get_client_index(worldState.clienState, peer);
     worldState.clienState[index].peer = NULL;
     worldState.clienState[index].data.id = 0;
+    playerCount--;
 }
 
 DWORD WINAPI listener(LPVOID lpParam) {
@@ -106,7 +109,8 @@ DWORD WINAPI listener(LPVOID lpParam) {
         while (enet_host_service(server, &event, 1000) > 0) {
             switch (event.type) {
                 case ENET_EVENT_TYPE_CONNECT:
-                    printf("A new client connected.\n");
+                    playerCount++;
+                    printf("A new client connected. Player count : %d\n", playerCount);
                     break;
                 case ENET_EVENT_TYPE_RECEIVE:
                     handle_message(event.peer, event.packet, server);
@@ -148,7 +152,6 @@ int main() {
     DWORD threadId;
     HANDLE threadHandle;
     CreateThread(NULL, 0, listener, server, 0, &threadId);
-
     while(1) {
         Sleep(100);
         positionBroadcast sendData;
@@ -161,20 +164,18 @@ int main() {
             }
         }
         for (int i=0;i<MAX_PLAYER;i++) {
-            if (worldState.clienState[i].peer != NULL) {
-                ENetPacket* sendPacket = enet_packet_create(&sendData, sizeof(sendData), ENET_PACKET_FLAG_RELIABLE);
+            if (worldState.clienState[i].peer != NULL && worldState.clienState[i].peer->state == ENET_PEER_STATE_CONNECTED) {
+                ENetPacket* sendPacket = enet_packet_create(&sendData, sizeof(sendData), ENET_PACKET_FLAG_UNRELIABLE_FRAGMENT);
                 enet_peer_send(worldState.clienState[i].peer, 0, sendPacket);
-                enet_host_flush(server);
             }
         }
+        enet_host_flush(server);
     }
     
     WaitForSingleObject(threadHandle, INFINITE);
     CloseHandle(threadHandle);
-    
 
     enet_host_destroy(server);
     enet_deinitialize();
-
     return 0;
 }
