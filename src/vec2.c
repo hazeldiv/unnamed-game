@@ -37,6 +37,10 @@ vec2 vec2_distance(vec2 a, vec2 b) {
     return vec2_abs(vec2_subtract(a,b));
 }
 
+vec2 vec2_tile_distance(vec2 a, vec2 b) {
+    return vec2_distance(vec2_floor(a),vec2_floor(b));
+}
+
 int vec2_distanceCompare(vec2 a, vec2 b, int s) {
     vec2 distance = vec2_distance(a,b);
     return distance.x <= s && distance.y <= s;

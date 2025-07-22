@@ -27,4 +27,8 @@ vec2 vec2_abs(vec2 a);
 
 int vec2_distanceCompare(vec2 a, vec2 b, int s);
 
+vec2 vec2_tile_distance(vec2 a, vec2 b);
+
+vec2 vec2_distance(vec2 a, vec2 b);
+
 #endif

@@ -30,9 +30,11 @@ SDL_AppResult tile_iterate(game *gameState);
 SDL_AppResult renderer_iterate(game *gameState);
 SDL_AppResult inventory_iterate(game *gameState, inventory *inventory);
 
-SDL_AppResult mainMenu_iterate(game *gameState);
-SDL_AppResult mainMenu_init(game *gameState);
-SDL_AppResult mainMenu_event(SDL_Event *event, game *gameState);
+SDL_AppResult auth_iterate(game *gameState);
+SDL_AppResult auth_init(game *gameState);
+SDL_AppResult MainMenu_event(SDL_Event *event, game *gameState);
+SDL_AppResult auth_event(SDL_Event *event, game *gameState);
+void mainMenu_iterate(game *gameState);
 
 void client_quit();
 
@@ -102,7 +104,6 @@ SDL_AppResult SDL_AppInit(void **appstate, int argc, char *argv[])
     gameState->t = 0.0f;
     //generateWorld();
 
-
     renderer_init(gameState);
     TTF_Init();
     gameState->engine = TTF_CreateRendererTextEngine(gameState->renderer);
@@ -112,6 +113,7 @@ SDL_AppResult SDL_AppInit(void **appstate, int argc, char *argv[])
     gameState->inventory.inventoryItem[1] = 2;
     gameState->inventory.inventoryItem[2] = 4;
     gameState->inventory.inventoryItem[3] = 3;
+    gameState->inventory.selectedHotbar = 0;
     for (int i=0;i<32;i++) {
         gameState->surroundingPlayer[i].id = 0;
         gameState->surroundingPlayer[i].velocity = (vec2){0,0};
@@ -124,8 +126,8 @@ SDL_AppResult SDL_AppInit(void **appstate, int argc, char *argv[])
     //block_init(gameState);
     item_init(gameState);
 
-    mainMenu_init(gameState);
-    gameState->currentScene = 2;
+    auth_init(gameState);
+    gameState->currentScene = 3;
     return SDL_APP_CONTINUE;
 }
 
@@ -136,8 +138,10 @@ SDL_AppResult SDL_AppEvent(void *appstate, SDL_Event *event)
     }
     if (gameState->currentScene == 1) {
         input_event(event, gameState);
-    } else if (gameState->currentScene == 2) {
-        mainMenu_event(event, gameState);
+    } else if(gameState->currentScene == 2) {
+        MainMenu_event(event, gameState);
+    } else if (gameState->currentScene == 3) {
+        auth_event(event, gameState);
     }
     return SDL_APP_CONTINUE;
 }
@@ -178,6 +182,8 @@ SDL_AppResult SDL_AppIterate(void *appstate)
     } else if(gameState->currentScene == 2) {
         mainMenu_iterate(gameState);
     } else if (gameState->currentScene == 3) {
+        auth_iterate(gameState);
+    } else if(gameState->currentScene == 4) {
         SDL_FRect rect;
         rect.x = 0;
         rect.y = 0;

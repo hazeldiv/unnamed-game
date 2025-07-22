@@ -122,12 +122,12 @@ void client_init(game *gameState) {
         } else {
             printf("Connection failed.\n");
             enet_peer_reset(peer);
-            gameState->currentScene = 2;
+            gameState->currentScene = 3;
         }
     } else {
         printf("Connection failed.\n");
         enet_peer_reset(peer);
-        gameState->currentScene = 2;
+        gameState->currentScene = 3;
     }
     
     gameState->isClientBusy = 0;

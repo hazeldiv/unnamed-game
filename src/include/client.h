@@ -2,6 +2,7 @@
 #define CLIENT_H
 #include <tile.h>
 #include <game.h>
+#include <stdint.h>
 
 #define MAXWORLD 20
 #define MAXPLAYER 32
