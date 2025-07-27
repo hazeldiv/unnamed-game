@@ -19,8 +19,8 @@
 #define SERVER_HOST "152.42.223.96"
 #define SERVER_PORT 55555
 
-static ENetHost *client;
-ENetPeer *peer;
+static ENetHost *client = NULL;
+static ENetPeer *peer = NULL;
 
 void client_iterate(game *gameState) {
     ENetEvent event;
@@ -165,6 +165,10 @@ void tile_update(tile *tile) {
 }
 
 void client_quit() {
-    enet_host_destroy(client);
-    enet_deinitialize();
+    if (peer && client) {
+        enet_peer_disconnect(peer, 0);
+        enet_host_destroy(client);
+        enet_deinitialize();
+    }
+    
 }

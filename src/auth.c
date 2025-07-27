@@ -30,8 +30,6 @@ SDL_AppResult auth_init(game *gameState) {
     gameState->scene[id].component[1].fill = (color){200,200,200};
     gameState->scene[id].component[1].outline = (color){50,50,200};
     gameState->scene[id].componentCount = 2;
-    
-    
 }
 
 int getComponent(vec2 pos, game *gameState) {

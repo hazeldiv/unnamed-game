@@ -33,9 +33,9 @@ typedef struct component {
     color outline;
 } component;
 
-typedef struct text {
+// typedef struct text {
     
-} text;
+// } text;
 
 typedef struct button {
     SDL_Renderer* renderer;

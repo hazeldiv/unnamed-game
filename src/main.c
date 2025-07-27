@@ -127,7 +127,7 @@ SDL_AppResult SDL_AppInit(void **appstate, int argc, char *argv[])
     item_init(gameState);
 
     auth_init(gameState);
-    gameState->currentScene = 3;
+    gameState->currentScene = 2;
     return SDL_APP_CONTINUE;
 }
 

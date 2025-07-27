@@ -19,8 +19,9 @@ void drawButton(button button) {
         int textWidth;
         int textHeight;
         TTF_GetTextSize(ttfText, &textWidth, &textHeight);
+        SDL_FRect tmp = rect;
         rect.x = rect.x + rect.w/2 - textWidth/2;
-        rect.x = rect.y + rect.h/2 - textHeight/2;
+        rect.y = rect.y + rect.h/2 - textHeight/2 - 6;
         TTF_SetTextColor(ttfText, 255,255,255, SDL_ALPHA_OPAQUE);
         TTF_DrawRendererText(ttfText, rect.x, rect.y);
         TTF_DestroyText(ttfText);
