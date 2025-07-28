@@ -34,6 +34,12 @@ SDL_AppResult auth_iterate(game *gameState);
 SDL_AppResult auth_init(game *gameState);
 SDL_AppResult MainMenu_event(SDL_Event *event, game *gameState);
 SDL_AppResult auth_event(SDL_Event *event, game *gameState);
+
+SDL_AppResult worldMenu_iterate(game *gameState);
+SDL_AppResult worldMenu_init(game *gameState);
+SDL_AppResult worldMenu_event(SDL_Event *event, game *gameState);
+
+
 void mainMenu_iterate(game *gameState);
 
 void client_quit();
@@ -127,6 +133,7 @@ SDL_AppResult SDL_AppInit(void **appstate, int argc, char *argv[])
     item_init(gameState);
 
     auth_init(gameState);
+    worldMenu_init(gameState);
     gameState->currentScene = 2;
     return SDL_APP_CONTINUE;
 }
@@ -142,6 +149,8 @@ SDL_AppResult SDL_AppEvent(void *appstate, SDL_Event *event)
         MainMenu_event(event, gameState);
     } else if (gameState->currentScene == 3) {
         auth_event(event, gameState);
+    } else if (gameState->currentScene == 4) {
+        worldMenu_event(event, gameState);
     }
     return SDL_APP_CONTINUE;
 }
@@ -184,6 +193,8 @@ SDL_AppResult SDL_AppIterate(void *appstate)
     } else if (gameState->currentScene == 3) {
         auth_iterate(gameState);
     } else if(gameState->currentScene == 4) {
+        worldMenu_iterate(gameState);
+    } else if (gameState->currentScene == 5) {
         SDL_FRect rect;
         rect.x = 0;
         rect.y = 0;

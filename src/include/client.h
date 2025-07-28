@@ -18,6 +18,12 @@ enum {
     BROADCAST_POSITION,
     BROADCAST_TILE,
     BROADCAST_CHAT,
+    BROADCAST_WORLD
+};
+
+enum {
+    CONNECT_LOGIN,
+    CONNECT_WORLD
 };
 
 typedef struct simpleTile {
@@ -67,10 +73,25 @@ typedef struct clientHeader {
     uint8_t type;
 } clientHeader;
 
+typedef struct worldConnectPacket {
+    uint8_t type;
+    int port;
+} worldConnectPacket;
+
+typedef struct worldRequestPacket {
+    uint8_t type;
+    char playerName[50];
+    char worldName[50];
+} worldRequestPacket;
+
 void tile_update(tile *tile);
 
-void client_init(game *gameState);
-// void client_iterate(game *gameState);
+void client_player_init(game *gameState);
+
+void client_join_world(game *gameState);
+
+// void client_world_init(game *gameState, int port);
+
 void update_position(game *gameState);
 
 #endif

@@ -31,6 +31,7 @@ typedef struct game {
     scene scene[10];
     TTF_TextEngine *engine;
     TTF_Font *font;
+    char worldName[50];
 } game;
 
 #endif

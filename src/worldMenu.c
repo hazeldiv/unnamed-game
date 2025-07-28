@@ -8,9 +8,9 @@
 #include <stdlib.h>
 #include <client.h>
 
-static int id = 3;
+static int id = 4;
 
-SDL_AppResult auth_init(game *gameState) {
+SDL_AppResult worldMenu_init(game *gameState) {
     int h = 50;
     int w = 300;
     int gap = 10;
@@ -46,16 +46,16 @@ static int getComponent(vec2 pos, game *gameState) {
 static int focus = 0;
 static char inputText[MAX_TEXT] = "";
 
-SDL_AppResult auth_event(SDL_Event *event, game *gameState) {
+SDL_AppResult worldMenu_event(SDL_Event *event, game *gameState) {
     if (event->type == SDL_EVENT_MOUSE_BUTTON_UP) {
         int pressedComponent = getComponent((vec2){event->button.x,event->button.y}, gameState);
         focus = 0;
         if (pressedComponent == 1) {
             gameState->currentScene = 5;
 
-            strcpy(gameState->entityState.name, inputText);
+            strcpy(gameState->worldName, inputText);
 
-            SDL_Thread *thread = SDL_CreateThread((SDL_ThreadFunction)client_player_init, "client_player_init", gameState);
+            SDL_Thread *thread = SDL_CreateThread((SDL_ThreadFunction)client_join_world, "client_join_world", gameState);
             SDL_DetachThread(thread);
         } 
         if (pressedComponent == 0) {
@@ -78,7 +78,7 @@ SDL_AppResult auth_event(SDL_Event *event, game *gameState) {
 static Uint64 lastBlinkTime = 0;
 static int showCaret = 0;
 
-SDL_AppResult auth_iterate(game *gameState) {
+SDL_AppResult worldMenu_iterate(game *gameState) {
     SDL_FRect rect;
     rect.x = 0;
     rect.y = 0;
@@ -103,7 +103,7 @@ SDL_AppResult auth_iterate(game *gameState) {
         if (i==0) {
             TTF_Text *ttfText;
 
-            ttfText = TTF_CreateText(gameState->engine, gameState->font, "Name :", strlen("Name :"));
+            ttfText = TTF_CreateText(gameState->engine, gameState->font, "World Name :", strlen("World Name :"));
             TTF_SetTextColor(ttfText, 255,255,255, SDL_ALPHA_OPAQUE);
             TTF_DrawRendererText(ttfText, rect.x+20, rect.y - 30);
             TTF_DestroyText(ttfText);
