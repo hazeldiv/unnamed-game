@@ -8,9 +8,14 @@
 #include <windows.h>
 #include <SDL3/SDL.h>
 
-#define PORT 55555
+// #define PORT 55555
+static int port;
+static char worldName[50];
 world worldState;
 uint8_t playerCount;
+int running = 1;
+Uint64 lastActivityTime = 0;
+
 void generate_world() {
     for (int y=0;y<100;y++) {
         for (int x=0;x<100;x++) {
@@ -99,18 +104,39 @@ void handle_disconnect(ENetPeer* peer) {
     worldState.clienState[index].peer = NULL;
     worldState.clienState[index].data.id = 0;
     playerCount--;
+    if (playerCount == 0) {
+        lastActivityTime = SDL_GetTicks();
+    }
+}
+
+void server_shutdown() {
+    enet_initialize();
+    ENetHost* localHost = enet_host_create(NULL, 1, 2, 0, 0);
+    ENetAddress mainServerAddr;
+    enet_address_set_host(&mainServerAddr, "127.0.0.1");
+    mainServerAddr.port = 55555;
+    
+
+    ENetPeer* mainServer = enet_host_connect(localHost, &mainServerAddr, 2, 0);
+    ENetEvent event;
+    if (enet_host_service(localHost, &event, 10000)) {
+        WorldShutdownNotify sendPacket = {WORLD_SHUTDOWN, port};
+        enet_peer_send(mainServer, 0, enet_packet_create(&sendPacket, sizeof(sendPacket), ENET_PACKET_FLAG_RELIABLE));
+        enet_host_flush(localHost);
+        running = 0;
+    }
 }
 
 DWORD WINAPI listener(LPVOID lpParam) {
-    printf("Server listening on port %d...\n", PORT);
+    // printf("Server listening on port %d...\n", port);
     ENetHost *server = (ENetHost*)lpParam;
     ENetEvent event;
-    while (1) {
+    while (running) {
         while (enet_host_service(server, &event, 1000) > 0) {
             switch (event.type) {
                 case ENET_EVENT_TYPE_CONNECT:
                     playerCount++;
-                    printf("A new client connected. Player count : %d\n", playerCount);
+                    // printf("A new client connected. Player count : %d\n", playerCount);
                     break;
                 case ENET_EVENT_TYPE_RECEIVE:
                     handle_message(event.peer, event.packet, server);
@@ -118,18 +144,33 @@ DWORD WINAPI listener(LPVOID lpParam) {
                     break;
                 case ENET_EVENT_TYPE_DISCONNECT:
                     handle_disconnect(event.peer);
-                    printf("Client disconnected.\n");
+                    // printf("Client disconnected.\n");
                     break;
                 default:
                     break;
             }
+        }
+        if (SDL_GetTicks() - lastActivityTime > 300000 && lastActivityTime != 0 && playerCount == 0) {
+            server_shutdown();
         }
     }
     
     return 0;
 }
 
-int main() {
+void parse_args(int argc, char** argv) {
+    for (int i = 1; i < argc; i++) {
+        if (strcmp(argv[i], "--world") == 0 && i + 1 < argc) {
+            strncpy(worldName, argv[++i], sizeof(worldName));
+        } else if (strcmp(argv[i], "--port") == 0 && i + 1 < argc) {
+            port = atoi(argv[++i]);
+        }
+    }
+}
+
+int main(int argc, char** argv) {
+    parse_args(argc, argv);
+    // printf("Starting world: \"%s\" on port: %d\n", worldName, port);
     generate_world();
     if (enet_initialize() != 0) {
         printf("ENet failed to initialize.\n");
@@ -140,7 +181,7 @@ int main() {
     ENetHost *server;
 
     address.host = ENET_HOST_ANY;
-    address.port = PORT;
+    address.port = port;
 
     server = enet_host_create(&address, 32, 2, 0, 0);
     if (!server) {
@@ -152,7 +193,7 @@ int main() {
     DWORD threadId;
     HANDLE threadHandle;
     CreateThread(NULL, 0, listener, server, 0, &threadId);
-    while(1) {
+    while (running) {
         Sleep(100);
         positionBroadcast sendData;
         sendData.type = BROADCAST_POSITION;

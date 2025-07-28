@@ -21,6 +21,13 @@ enum {
     BROADCAST_POSITION,
     BROADCAST_TILE,
     BROADCAST_CHAT,
+    BROADCAST_WORLD
+};
+
+enum {
+    CONNECT_LOGIN,
+    CONNECT_WORLD,
+    WORLD_SHUTDOWN
 };
 
 typedef struct header {
@@ -80,5 +87,31 @@ typedef struct tileUpdate {
     simpleTile tile;
     vec2_int position;
 } tileUpdate;
+
+typedef struct worldConnectPacket {
+    uint8_t type;
+    int port;
+} worldConnectPacket;
+
+typedef struct worldRequestPacket {
+    uint8_t type;
+    char playerName[50];
+    char worldName[50];
+} worldRequestPacket;
+
+typedef struct loginInput {
+    uint8_t type;
+    char playerName[50];
+} loginInput;
+
+typedef struct loginOutput {
+    char playerName[50];
+    int status;
+} loginOutput;
+
+typedef struct WorldShutdownNotify {
+    uint8_t type;
+    int port;
+} WorldShutdownNotify;
 
 #endif
